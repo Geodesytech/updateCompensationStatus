@@ -69,10 +69,25 @@ class CompensationStatus(object):
     def execute(self, parameters, messages):
         """The source code of the tool."""
         for param in parameters:
+            arcpy.AddMessage("-----------------------")
             arcpy.AddMessage(f"Parameter ValueAsText: {param.valueAsText}")
             arcpy.AddMessage(f"Parameter Value: {param.value}")
             arcpy.AddMessage(f"Parameter Type: {type(param)}")
             arcpy.AddMessage("-----------------------")
+
+        SQLQuery = "parcel_id={}".format(parameters[0].valueAsText)
+
+        landFC = r"C:\data.gdb\lines"
+        updatefield = ["doc_no", "posting_date", "com_status"]
+
+        with arcpy.da.UpdateCursor(landFC, updatefield, where_clause=SQLQuery) as cursor:
+            for row in cursor:
+                i = 0
+                for param in parameters:
+                    row[i] = param.valueAsText
+                    i = i + 1
+                cursor.updateRow(row)
+            del cursor
         return
 
     def postExecute(self, parameters):
